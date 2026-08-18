@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoalForge</title>
+</head>
+<body>
+
+  <h1>GoalForge</h1>
+  <p>Find people building the same future.</p>
+
+  <form id="goalForm">
+
+    <label>Main Goal</label><br>
+    <input type="text" id="goal" placeholder="Example: Buy land and live off-grid"><br><br>
+
+    <label>Location</label><br>
+    <input type="text" id="location" placeholder="Example: Georgia"><br><br>
+
+    <label>Budget</label><br>
+    <input type="number" id="budget" placeholder="Example: 20000"><br><br>
+
+    <label>Timeline</label><br>
+    <input type="text" id="timeline" placeholder="Example: Within 2 years"><br><br>
+
+    <label>Skills</label><br>
+    <input type="text" id="skills" placeholder="Example: Equipment, electrical, farming"><br><br>
+
+    <button type="submit">Save Goal Profile</button>
+
+  </form>
+
+  <h2 id="message"></h2>
+
+  <script>
+    const form = document.getElementById("goalForm");
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const profile = {
+        goal: document.getElementById("goal").value,
+        location: document.getElementById("location").value,
+        budget: document.getElementById("budget").value,
+        timeline: document.getElementById("timeline").value,
+        skills: document.getElementById("skills").value
+      };
+
+      localStorage.setItem("goalforgeProfile", JSON.stringify(profile));
+
+      document.getElementById("message").textContent =
+        "Goal profile saved.";
+    });
+  </script>
+
+</body>
+</html>

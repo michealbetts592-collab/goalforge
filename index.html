@@ -32,7 +32,7 @@
   </form>
 
   <h2 id="message"></h2>
-
+<div id="savedProfile"></div>
   <script>
     const form = document.getElementById("goalForm");
 
@@ -51,7 +51,26 @@
 
       document.getElementById("message").textContent =
         "Goal profile saved.";
-    });
+    });function showSavedProfile() {
+  const saved = localStorage.getItem("goalforgeProfile");
+
+  if (!saved) {
+    return;
+  }
+
+  const profile = JSON.parse(saved);
+
+  document.getElementById("savedProfile").innerHTML = `
+    <h2>Your Goal Profile</h2>
+    <p><strong>Goal:</strong> ${profile.goal}</p>
+    <p><strong>Location:</strong> ${profile.location}</p>
+    <p><strong>Budget:</strong> $${profile.budget}</p>
+    <p><strong>Timeline:</strong> ${profile.timeline}</p>
+    <p><strong>Skills:</strong> ${profile.skills}</p>
+  `;
+}
+
+showSavedProfile();
   </script>
 
 </body>

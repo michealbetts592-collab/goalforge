@@ -3,75 +3,863 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>GoalForge</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
   <h1>GoalForge</h1>
   <p>Find people building the same future.</p>
 
+  <hr>
+
+  <h2>Account</h2>
+
+  <input
+    type="email"
+    id="email"
+    placeholder="Email"
+  >
+  <br><br>
+
+  <input
+    type="password"
+    id="password"
+    placeholder="Password"
+  >
+  <br><br>
+
+  <button type="button" id="signupButton">
+    Sign Up
+  </button>
+
+  <button type="button" id="loginButton">
+    Log In
+  </button>
+
+  <button type="button" id="logoutButton">
+    Log Out
+  </button>
+
+  <p id="authMessage">
+    Not logged in.
+  </p>
+
+  <hr>
+
+  <h2>Your Goal Profile</h2>
+
   <form id="goalForm">
 
-    <label>Main Goal</label><br>
-    <input type="text" id="goal" placeholder="Example: Buy land and live off-grid"><br><br>
+    <label>Main Goal</label>
+    <br>
 
-    <label>Location</label><br>
-    <input type="text" id="location" placeholder="Example: Georgia"><br><br>
+    <input
+      type="text"
+      id="goal"
+      placeholder="Example: Buy land and live off-grid"
+      required
+    >
 
-    <label>Budget</label><br>
-    <input type="number" id="budget" placeholder="Example: 20000"><br><br>
+    <br><br>
 
-    <label>Timeline</label><br>
-    <input type="text" id="timeline" placeholder="Example: Within 2 years"><br><br>
+    <label>Location</label>
+    <br>
 
-    <label>Skills</label><br>
-    <input type="text" id="skills" placeholder="Example: Equipment, electrical, farming"><br><br>
+    <input
+      type="text"
+      id="location"
+      placeholder="Example: Georgia"
+      required
+    >
 
-    <button type="submit">Save Goal Profile</button>
+    <br><br>
+
+    <label>Budget</label>
+    <br>
+
+    <input
+      type="number"
+      id="budget"
+      placeholder="Example: 20000"
+      min="0"
+      required
+    >
+
+    <br><br>
+
+    <label>Timeline</label>
+    <br>
+
+    <input
+      type="text"
+      id="timeline"
+      placeholder="Example: Within 2 years"
+      required
+    >
+
+    <br><br>
+
+    <label>Skills</label>
+    <br>
+
+    <input
+      type="text"
+      id="skills"
+      placeholder="Example: Equipment, electrical, farming"
+      required
+    >
+
+    <br><br>
+
+    <button type="submit">
+      Save Goal Profile
+    </button>
 
   </form>
 
-  <h2 id="message"></h2>
-<div id="savedProfile"></div>
+  <p id="message"></p>
+
+  <div id="savedProfile"></div>
+
+  <hr>
+
+  <h2>Potential Matches</h2>
+
+  <button
+    type="button"
+    id="findMatchesButton"
+  >
+    Find Matches
+  </button>
+
+  <div id="matches"></div>
+
   <script>
-    const form = document.getElementById("goalForm");
 
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
+    const SUPABASE_URL =
+      "https://kdcpwozangfmmkdftscl.supabase.co";
 
-      const profile = {
-        goal: document.getElementById("goal").value,
-        location: document.getElementById("location").value,
-        budget: document.getElementById("budget").value,
-        timeline: document.getElementById("timeline").value,
-        skills: document.getElementById("skills").value
-      };
+    const SUPABASE_KEY =
+ " sb_publishable_KhVM3RlZoJIYOXGCxaOfJQ_V1lgiH36"
 
-      localStorage.setItem("goalforgeProfile", JSON.stringify(profile));
+    const db =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
 
-      document.getElementById("message").textContent =
-        "Goal profile saved.";
-    });function showSavedProfile() {
-  const saved = localStorage.getItem("goalforgeProfile");
 
-  if (!saved) {
-    return;
-  }
+    const emailInput =
+      document.getElementById("email");
 
-  const profile = JSON.parse(saved);
+    const passwordInput =
+      document.getElementById("password");
 
-  document.getElementById("savedProfile").innerHTML = `
-    <h2>Your Goal Profile</h2>
-    <p><strong>Goal:</strong> ${profile.goal}</p>
-    <p><strong>Location:</strong> ${profile.location}</p>
-    <p><strong>Budget:</strong> $${profile.budget}</p>
-    <p><strong>Timeline:</strong> ${profile.timeline}</p>
-    <p><strong>Skills:</strong> ${profile.skills}</p>
-  `;
-}
+    const signupButton =
+      document.getElementById("signupButton");
 
-showSavedProfile();
+    const loginButton =
+      document.getElementById("loginButton");
+
+    const logoutButton =
+      document.getElementById("logoutButton");
+
+    const authMessage =
+      document.getElementById("authMessage");
+
+    const form =
+      document.getElementById("goalForm");
+
+    const message =
+      document.getElementById("message");
+
+    const savedProfile =
+      document.getElementById("savedProfile");
+
+    const findMatchesButton =
+      document.getElementById("findMatchesButton");
+
+    const matchesDiv =
+      document.getElementById("matches");
+
+
+    function setAuthMessage(text) {
+
+      authMessage.textContent = text;
+
+    }
+
+
+    function renderProfile(
+      container,
+      profile,
+      title
+    ) {
+
+      container.innerHTML = "";
+
+      const heading =
+        document.createElement("h3");
+
+      heading.textContent = title;
+
+      container.appendChild(heading);
+
+
+      const fields = [
+
+        ["Goal", profile.goal],
+
+        ["Location", profile.location],
+
+        ["Budget", "$" + profile.budget],
+
+        ["Timeline", profile.timeline],
+
+        ["Skills", profile.skills]
+
+      ];
+
+
+      fields.forEach(function(field) {
+
+        const p =
+          document.createElement("p");
+
+        const strong =
+          document.createElement("strong");
+
+        strong.textContent =
+          field[0] + ": ";
+
+        p.appendChild(strong);
+
+        p.appendChild(
+          document.createTextNode(
+            field[1] ?? ""
+          )
+        );
+
+        container.appendChild(p);
+
+      });
+
+    }
+
+
+    async function getCurrentUser() {
+
+      const { data, error } =
+        await db.auth.getUser();
+
+      if (
+        error ||
+        !data.user
+      ) {
+
+        return null;
+
+      }
+
+      return data.user;
+
+    }
+
+
+    async function loadOwnProfile() {
+
+      const user =
+        await getCurrentUser();
+
+      if (!user) {
+
+        savedProfile.innerHTML = "";
+
+        return;
+
+      }
+
+
+      const {
+        data,
+        error
+      } = await db
+
+        .from("profiles")
+
+        .select(
+          "id, goal, location, budget, timeline, skills"
+        )
+
+        .eq(
+          "user_id",
+          user.id
+        )
+
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        )
+
+        .limit(1);
+
+
+      if (error) {
+
+        message.textContent =
+          "Could not load profile: " +
+          error.message;
+
+        return;
+
+      }
+
+
+      if (
+        !data ||
+        data.length === 0
+      ) {
+
+        savedProfile.innerHTML = "";
+
+        return;
+
+      }
+
+
+      const profile =
+        data[0];
+
+
+      document.getElementById("goal").value =
+        profile.goal ?? "";
+
+      document.getElementById("location").value =
+        profile.location ?? "";
+
+      document.getElementById("budget").value =
+        profile.budget ?? "";
+
+      document.getElementById("timeline").value =
+        profile.timeline ?? "";
+
+      document.getElementById("skills").value =
+        profile.skills ?? "";
+
+
+      renderProfile(
+        savedProfile,
+        profile,
+        "Saved Profile"
+      );
+
+    }
+
+
+    signupButton.addEventListener(
+      "click",
+      async function() {
+
+        const email =
+          emailInput.value.trim();
+
+        const password =
+          passwordInput.value;
+
+
+        if (
+          !email ||
+          !password
+        ) {
+
+          setAuthMessage(
+            "Enter an email and password."
+          );
+
+          return;
+
+        }
+
+
+        const {
+          data,
+          error
+        } = await db.auth.signUp({
+
+          email: email,
+
+          password: password
+
+        });
+
+
+        if (error) {
+
+          setAuthMessage(
+            "Sign-up failed: " +
+            error.message
+          );
+
+          return;
+
+        }
+
+
+        if (data.session) {
+
+          setAuthMessage(
+            "Account created and logged in."
+          );
+
+          await loadOwnProfile();
+
+        } else {
+
+          setAuthMessage(
+            "Account created. Check your email to confirm it, then log in."
+          );
+
+        }
+
+      }
+    );
+
+
+    loginButton.addEventListener(
+      "click",
+      async function() {
+
+        const email =
+          emailInput.value.trim();
+
+        const password =
+          passwordInput.value;
+
+
+        if (
+          !email ||
+          !password
+        ) {
+
+          setAuthMessage(
+            "Enter an email and password."
+          );
+
+          return;
+
+        }
+
+
+        const { error } =
+          await db.auth.signInWithPassword({
+
+            email: email,
+
+            password: password
+
+          });
+
+
+        if (error) {
+
+          setAuthMessage(
+            "Login failed: " +
+            error.message
+          );
+
+          return;
+
+        }
+
+
+        setAuthMessage(
+          "Logged in."
+        );
+
+
+        await loadOwnProfile();
+
+      }
+    );
+
+
+    logoutButton.addEventListener(
+      "click",
+      async function() {
+
+        const { error } =
+          await db.auth.signOut();
+
+
+        if (error) {
+
+          setAuthMessage(
+            "Logout failed: " +
+            error.message
+          );
+
+          return;
+
+        }
+
+
+        setAuthMessage(
+          "Logged out."
+        );
+
+
+        savedProfile.innerHTML = "";
+
+        matchesDiv.innerHTML = "";
+
+        message.textContent = "";
+
+      }
+    );
+
+
+    form.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        const user =
+          await getCurrentUser();
+
+
+        if (!user) {
+
+          message.textContent =
+            "You must be logged in to save a profile.";
+
+          return;
+
+        }
+
+
+        const profile = {
+
+          goal:
+            document
+              .getElementById("goal")
+              .value
+              .trim(),
+
+          location:
+            document
+              .getElementById("location")
+              .value
+              .trim(),
+
+          budget:
+            Number(
+              document
+                .getElementById("budget")
+                .value
+            ),
+
+          timeline:
+            document
+              .getElementById("timeline")
+              .value
+              .trim(),
+
+          skills:
+            document
+              .getElementById("skills")
+              .value
+              .trim()
+
+        };
+
+
+        const {
+          data: existing,
+          error: findError
+        } = await db
+
+          .from("profiles")
+
+          .select("id")
+
+          .eq(
+            "user_id",
+            user.id
+          )
+
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          )
+
+          .limit(1);
+
+
+        if (findError) {
+
+          message.textContent =
+            "Could not check existing profile: " +
+            findError.message;
+
+          return;
+
+        }
+
+
+        let saveError = null;
+
+
+        if (
+          existing &&
+          existing.length > 0
+        ) {
+
+          const result =
+            await db
+
+              .from("profiles")
+
+              .update(profile)
+
+              .eq(
+                "id",
+                existing[0].id
+              )
+
+              .eq(
+                "user_id",
+                user.id
+              );
+
+
+          saveError =
+            result.error;
+
+        } else {
+
+          const result =
+            await db
+
+              .from("profiles")
+
+              .insert({
+
+                user_id:
+                  user.id,
+
+                goal:
+                  profile.goal,
+
+                location:
+                  profile.location,
+
+                budget:
+                  profile.budget,
+
+                timeline:
+                  profile.timeline,
+
+                skills:
+                  profile.skills
+
+              });
+
+
+          saveError =
+            result.error;
+
+        }
+
+
+        if (saveError) {
+
+          message.textContent =
+            "Save failed: " +
+            saveError.message;
+
+          return;
+
+        }
+
+
+        message.textContent =
+          "Goal profile saved to the cloud.";
+
+
+        renderProfile(
+          savedProfile,
+          profile,
+          "Saved Profile"
+        );
+
+      }
+    );
+
+
+    findMatchesButton.addEventListener(
+      "click",
+      async function() {
+
+        const user =
+          await getCurrentUser();
+
+
+        if (!user) {
+
+          matchesDiv.textContent =
+            "Log in first to find matches.";
+
+          return;
+
+        }
+
+
+        matchesDiv.textContent =
+          "Finding matches...";
+
+
+        const {
+          data: profiles,
+          error
+        } = await db
+
+          .from("profiles")
+
+          .select(
+            "goal, location, budget, timeline, skills"
+          )
+
+          .neq(
+            "user_id",
+            user.id
+          );
+
+
+        if (error) {
+
+          matchesDiv.textContent =
+            "Could not load matches: " +
+            error.message;
+
+          return;
+
+        }
+
+
+        matchesDiv.innerHTML = "";
+
+
+        if (
+          !profiles ||
+          profiles.length === 0
+        ) {
+
+          matchesDiv.textContent =
+            "No other profiles found yet.";
+
+          return;
+
+        }
+
+
+        profiles.forEach(
+          function(
+            profile,
+            index
+          ) {
+
+            const card =
+              document.createElement("div");
+
+
+            renderProfile(
+              card,
+              profile,
+              "Potential Match " +
+              (index + 1)
+            );
+
+
+            matchesDiv.appendChild(
+              card
+            );
+
+
+            const hr =
+              document.createElement("hr");
+
+
+            matchesDiv.appendChild(
+              hr
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    db.auth.onAuthStateChange(
+      async function(
+        event,
+        session
+      ) {
+
+        if (
+          session &&
+          session.user
+        ) {
+
+          setAuthMessage(
+            "Logged in."
+          );
+
+        } else {
+
+          setAuthMessage(
+            "Not logged in."
+          );
+
+        }
+
+      }
+    );
+
+
+    (
+      async function startGoalForge() {
+
+        const user =
+          await getCurrentUser();
+
+
+        if (user) {
+
+          setAuthMessage(
+            "Logged in."
+          );
+
+
+          await loadOwnProfile();
+
+        }
+
+      }
+    )();
+
   </script>
 
 </body>
 </html>
+	

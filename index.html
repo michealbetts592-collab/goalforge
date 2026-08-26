@@ -780,7 +780,24 @@
 
             const card =
               document.createElement("div");
+const score = calculateMatchScore(
+  {
+    goal: document.getElementById("goal").value,
+    location: document.getElementById("location").value,
+    budget: document.getElementById("budget").value,
+    timeline: document.getElementById("timeline").value,
+    skills: document.getElementById("skills").value
+  },
+  profile
+);
 
+const scoreHeading =
+  document.createElement("h2");
+
+scoreHeading.textContent =
+  score + "% Match";
+
+card.appendChild(scoreHeading);
 
             renderProfile(
               card,
